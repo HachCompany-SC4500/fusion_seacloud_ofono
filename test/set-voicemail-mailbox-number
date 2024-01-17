@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+
+from gi.repository import GLib
+import sys
+import dbus
+import dbus.mainloop.glib
+
+def mw_property_changed(name, value):
+	if name == 'VoicemailMessageCount':
+		print("MessageWaiting property: '%s' changed to '%d'" %\
+			(name,value))
+	else:
+		print("MessageWaiting property: '%s' changed to '%s'" %\
+			(name,value))
+
+	if canexit:
+		mainloop.quit()
+
+
+if __name__ == "__main__":
+	if len(sys.argv) < 2:
+		print('Usage: %s [modem] <voicemail-mailbox-number>' %\
+				(sys.argv[0]))
+		sys.exit(1)
+
+	canexit = False
+	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+	bus = dbus.SystemBus()
+
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+			'org.ofono.Manager')
+
+	if len(sys.argv) == 3:
+		path = sys.argv[1]
+		mailbox_number = sys.argv[2]
+	else:
+		modems = manager.GetModems()
+		path = modems[0][0]
+		mailbox_new_number = sys.argv[1]
+
+	sim_mgr = dbus.Interface(bus.get_object('org.ofono', path),
+			'org.ofono.SimManager')
+
+	properties = sim_mgr.GetProperties()
+
+	if 'Present' not in properties or 1 != properties['Present']:
+		print('Sim Not present, could not change property')
+		sys.exit(1)
+
+	mw = dbus.Interface(bus.get_object('org.ofono', path),
+			'org.ofono.MessageWaiting')
+
+	mw.connect_to_signal("PropertyChanged", mw_property_changed)
+
+	properties = mw.GetProperties()
+
+	vm_mbox_number = 'VoicemailMailboxNumber'
+
+	if vm_mbox_number in properties:
+		mailbox_old_number = properties[vm_mbox_number]
+
+		print('[%s] %s current value: %s' %\
+				(path, vm_mbox_number, mailbox_old_number))
+
+		try:
+			mw.SetProperty(vm_mbox_number, mailbox_new_number)
+		except dbus.DBusException as e:
+			print('Unable to set property: %s' % e)
+			sys.exit(1)
+
+		# Try to reset property
+		try:
+			mw.SetProperty(vm_mbox_number, mailbox_old_number)
+		except dbus.DBusException as e:
+			print('Unable to reset property: %s' % e)
+			sys.exit(1)
+
+	canexit = True
+
+	mainloop = GLib.MainLoop()
+
+	mainloop.run()

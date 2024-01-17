@@ -1,0 +1,36 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+
+bus = dbus.SystemBus()
+
+if (len(sys.argv) == 2):
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+	band = sys.argv[1]
+elif (len(sys.argv) == 3):
+	path = sys.argv[1]
+	band = sys.argv[2]
+else:
+	print("Usage: %s [modem] <band>" % (sys.argv[0]))
+	print("ex. %s FULL" % (sys.argv[0]))
+	sys.exit(1)
+
+telit = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.TelitCustom')
+
+try:
+	print("Network Survey %s..." % path)
+	response = telit.NetworkSurvey(dbus.String(band),timeout=300)
+except dbus.DBusException as e:
+	print("Error Network Survey %s: %s" % (path, str(e)))
+	exit(2)
+
+for key in response.keys():
+	val = response[key]
+	print("Cell N. %s, Values: %s" % (key, val))
+
+print('')

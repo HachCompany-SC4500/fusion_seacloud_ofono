@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+
+bus = dbus.SystemBus()
+
+manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+                                                'org.ofono.Manager')
+modems = manager.GetModems()
+path = modems[0][0]
+
+if len(sys.argv) == 2:
+	path = sys.argv[1]
+else:
+	print("Usage: %s [operator path]" % (sys.argv[0]))
+	sys.exit(1)
+
+netop = dbus.Interface(bus.get_object('org.ofono', path),
+'org.ofono.NetworkOperator')
+
+netop.Register()
+

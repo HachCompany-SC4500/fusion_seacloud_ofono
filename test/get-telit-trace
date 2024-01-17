@@ -1,0 +1,38 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+import time
+
+print("Usage: %s [modem]" % (sys.argv[0]))
+
+bus = dbus.SystemBus()
+
+if (len(sys.argv) == 1):
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+elif (len(sys.argv) > 1):
+	path = sys.argv[1]
+
+telit = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.TelitTrace')
+
+
+print("Get properties Telit Custom %s..." % path)
+TelitProp = telit.GetProperties()
+
+for key in TelitProp.keys():
+	if key in ["PortConfig"]:
+		val = str(TelitProp[key])
+#	if key in ["LocationAreaCode",
+#				"CellId"]:
+#		val = hex(TelitProp[key])
+#	elif key in ["TraceConfig"]:
+#		val = int(TelitProp[key])
+	else:
+		val = TelitProp[key]
+	print("   %s = %s" % (key, val))
+
+print('')

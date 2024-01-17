@@ -1,0 +1,45 @@
+#!/usr/bin/python3
+
+from gi.repository import GLib
+import dbus
+import sys
+import dbus.mainloop.glib
+
+def telit_trace_property_changed(name, value):
+	if type(value) is dbus.Byte:
+		print("Telit Trace property '%s' changed to '%d'" %\
+			(name, value))
+	else:
+		print("Telit Trace property '%s' changed to '%s'" %\
+		(name, value))
+	if name == 'TraceConfig' and canexit:	# TraceConfig is expected to be the last property received.
+		mainloop.quit()
+
+
+if __name__ == '__main__':
+	canexit = False
+
+	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+	bus = dbus.SystemBus()
+
+	if len(sys.argv) == 2:
+		path = sys.argv[1]
+	else:
+		manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+							'org.ofono.Manager')
+		modems = manager.GetModems()
+		path = modems[0][0]
+
+	telit = dbus.Interface(bus.get_object('org.ofono', path),
+							'org.ofono.TelitTrace')
+
+	telit.connect_to_signal('PropertyChanged', telit_trace_property_changed)
+	properties = telit.GetProperties()
+
+	print("Trace status: %s" % (properties["TraceStatus"]))
+
+	canexit = True
+
+	mainloop = GLib.MainLoop()
+	mainloop.run()

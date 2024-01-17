@@ -1,0 +1,183 @@
+The following interfaces, methods, signals and properties are supported for
+Telit IMC 3G based modem families (e.g. HE910, UE910), QC based modem families (e.g. LE910, UE910v2) and GSM:
+
+org.ofono.CallBarring
+        GetProperties (M)
+        ChangePassword (M)
+        DisableAll (M)
+        DisableAllIncoming (M)
+        DisableAllOutgoing (M)
+        SetProperty (M)
+        VoiceIncoming (P)
+        VoiceOutgoing (P)
+
+org.ofono.CallForwarding
+        GetProperties (M)
+        DisableAll (M)
+        SetProperty (M)
+        VoiceUnconditional (P)
+        VoiceBusy (P)
+        VoiceNoReply (P)
+        VoiceNotReachable (P)
+
+org.ofono.Modem
+        GetProperties (M)
+        SetProperty (M)
+        Powered (P)
+        Manufacturer (P)
+        Model (P)
+        Revision (P)
+        Serial (P)
+        Features (P)
+        Interfaces (P)
+
+org.ofono.NetworkRegistration
+        GetProperties (M)
+        Register (M)
+        GetOperators (M)
+        Scan (M)
+        Mode (P)
+        Status (P)
+        LocationAreaCode (P)
+        CellId (P)
+        MobileCountryCode (P)
+        MobileNetworkCode (P)
+        Technology (P)
+        Name (P)
+        Strength (P)
+
+org.ofono.NetworkOperator
+        GetProperties (M)
+        Register (M)
+        Name (P)
+        Status (P)
+        MobileCountryCode (P)
+        MobileNetworkCode (P)
+        Technologies (P)
+
+org.ofono.ConnectionManager
+        GetProperties (M)
+        SetProperty(M)
+        Attached (P)
+        Bearer (P)
+        Powered (P)
+        RoamingAllowed (P)
+
+org.ofono.RadioSettings
+        GetProperties (M)
+        SetProperty (M)
+        TechnologyPreference (P)
+
+org.ofono.SimManager
+        GetProperties (M)
+        ChangePin (M)
+        EnterPin (M)
+        ResetPin (M)
+        LockPin (M)
+        UnlockPin (M)
+        Present (P)
+        SubscriberIdentity (P)
+        MobileCountryCode (P)
+        MobileNetworkCode (P)
+        SubscriberNumbers (P)
+        ServiceNumbers (P)
+        PinRequired (P)
+        LockedPins (P)
+        CardIdentifier (P)
+        FixedDialing (P)
+        Retries (P)
+
+org.ofono.Manager
+        GetModems (M)
+        ModemAdded (S)
+        ModemRemoved (S)
+
+org.ofono.MessageManager
+        GetProperties (M)
+        GetMessages (M)
+        SetProperty (M)
+        SendMessage (M)
+        IncomingMessage (S)
+        MessageAdded (S)
+        MessageRemoved (S)
+        ServiceCenterAddress (P)
+
+org.ofono.SupplementaryServices
+        Initiate (M)
+        Respond (M)
+        Cancel (M)
+        GetProperties (M)
+        State (P)
+
+org.ofono.VoiceCall
+        GetProperties (M)
+        Hangup (M)
+        Answer (M)
+        Multiparty (P)
+        State (P)
+
+org.ofono.VoiceCallManager
+        GetProperties (M)
+        GetCalls (M)
+        Dial (M)
+        SwapCalls (M)
+        ReleaseAndAnswer (M)
+        ReleaseAndSwap (M)
+        HoldAndAnswer (M)
+        HangupAll (M)
+        CreateMultiparty (M)
+        HangupMultiparty (M)
+        CallAdded (S)
+        CallRemoved (S)
+
+org.ofono.TelitTrace
+        GetProperties (M)
+        SetProperty (M)
+        Reboot (M)
+        TraceStatus (P)
+        PortConfig (P)
+        TraceConfig (P)
+
+org.ofono.TelitURC
+        GetProperties (M)
+        SetProperty (M)
+        NetworkStatus (P)
+        GPRSStatus (P)
+        GPRSEvents (P)
+        NetworkType (P)
+        RSSIControl (P)
+        SIMStatus (P)
+
+org.ofono.TelitPowerManagement
+        GetProperties (M)
+        SetProperty (M)
+        PwMgmState (P)
+
+org.ofono.TelitDataNetwork
+        GetProfiles (M)
+        SetProfile (M)
+        DeleteProfile (M)
+        GetErrorReport (M)
+        GetNetworkErrorReport (M)
+        GetRFStatus (M)
+        EnhancedNetworkSelection (P)
+        AutomaticBandSelection (P)
+        LTEBandSelection (P)
+
+org.ofono.TelitHWManagement
+        GetProperties (M)
+        SetProperty (M)
+        GetGPIOs (M)
+        SetGPIO (M)
+        SIMDetectionMode (P)
+
+org.ofono.TelitCustom
+        NetworkSurvey (M)
+
+org.ofono.TelitMEControl
+        OpenLogicalChannel (M)
+        CloseLogicalChannel (M)
+        LogicalChannelAccess (M)
+
+Please note that some interfaces, methods, signals and properties could be
+missing in specific modems.

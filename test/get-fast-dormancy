@@ -1,0 +1,31 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+
+bus = dbus.SystemBus()
+
+if len(sys.argv) == 2:
+	path = sys.argv[1]
+else:
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+
+print("Getting fast dormancy for modem %s..." % path)
+radiosettings = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.RadioSettings')
+
+properties = radiosettings.GetProperties()
+
+
+print("Fast Dormancy = %s" % (str(properties["FastDormancy"]) ))
+
+
+#connman = dbus.Interface(bus.get_object('org.ofono', path),
+#				'org.ofono.ConnectionManager')
+
+#cm_properties = connman.GetProperties()
+
+#print("contexts Attached = %s" % (str(cm_properties["Attached"]) ))

@@ -1,0 +1,99 @@
+#!/usr/bin/python3
+
+import sys
+import dbus
+
+
+print("Usage: %s [modem] [context_number]" % (sys.argv[0]))
+
+bus = dbus.SystemBus()
+
+manager = dbus.Interface(bus.get_object('org.ofono', '/'), 'org.ofono.Manager')
+
+if (len(sys.argv) == 3):
+	modem = sys.argv[1]
+	context_idx = int(sys.argv[2]) - 1
+else:
+	modem = None
+	modems = manager.GetModems()
+	for path, properties in modems:
+		if "org.ofono.ConnectionManager" in properties["Interfaces"]:
+			modem = path
+			break
+	if (modem is None):
+		exit(2)
+	if (len(sys.argv) == 1):
+		context_idx = 0
+	elif (len(sys.argv) == 2):
+		context_idx = int(sys.argv[1])
+	else:
+		print("Usage: %s [modem] [context_number]" % (sys.argv[0]))
+		exit(1)
+
+	print ("[INFO] context_number: %d" % (context_idx))
+
+modemapi = dbus.Interface(bus.get_object('org.ofono', modem), 'org.ofono.Modem')
+properties = modemapi.GetProperties()
+
+if "org.ofono.ConnectionManager" not in properties["Interfaces"]:
+	print("org.ofono.ConnectionManager not found")
+	exit(2)
+
+connman = dbus.Interface(bus.get_object('org.ofono', modem),
+				'org.ofono.ConnectionManager')
+
+contexts = connman.GetContexts()
+
+if (len(contexts) == 0):
+	print("No context available")
+	exit(1)
+
+print ("[INFO] Contexts defined: %d" % len(contexts))
+
+if (len(contexts) < (context_idx) ):
+	print("Context %i is not available" % (context_idx))
+	val = "Are defined contexts [ "
+	for i in range(len(contexts)):
+		val += str(i) + " "
+	val += "]"
+	print ("%s" % val)
+	sys.exit(1)
+
+connman.SetProperty("Powered", dbus.Boolean(1))
+
+path = contexts[context_idx][0]
+
+context = dbus.Interface(bus.get_object('org.ofono', path),
+				'org.ofono.ConnectionContext')
+
+try:
+	context.SetProperty("Active", dbus.Boolean(1), timeout = 100)
+except dbus.DBusException as e:
+	print("Error activating %s: %s" % (path, str(e)))
+	exit(2)
+
+properties = context.GetProperties()
+
+netmask = properties["Settings"]["Netmask"]
+dns1 = properties["Settings"]["DomainNameServers"][0]
+dns2 = properties["Settings"]["DomainNameServers"][1]
+ip = properties["Settings"]["Address"]
+interface = properties["Settings"]["Interface"]
+
+print('')
+
+import os
+print("sudo ifconfig " + interface + " up")
+os.system("sudo ifconfig " + interface + " up")
+print("sudo ifconfig " + interface + " " + ip + " netmask " + netmask)
+os.system("sudo ifconfig " + interface + " " + ip + " netmask " + netmask)
+print("sudo route add default gw " + ip)
+os.system("sudo route add default gw " + ip)
+print("sudo sh -c \"> /etc/resolv.conf\"")
+os.system("sudo sh -c \"> /etc/resolv.conf\"")
+print("sudo sh -c \"echo nameserver " + dns1 + " >> /etc/resolv.conf\"")
+os.system("sudo sh -c \"echo nameserver " + dns1 + " >> /etc/resolv.conf\"")
+print("sudo sh -c \"echo nameserver " + dns2 + " >> /etc/resolv.conf\"")
+os.system("sudo sh -c \"echo nameserver " + dns2 + " >> /etc/resolv.conf\"")
+
+print('')

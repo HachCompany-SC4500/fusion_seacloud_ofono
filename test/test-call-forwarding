@@ -1,0 +1,186 @@
+#!/usr/bin/python3
+
+from gi.repository import GLib
+
+import dbus
+import dbus.mainloop.glib
+
+def property_changed(property, value):
+	print("CallForwarding property %s changed to %s" % (property, value))
+
+def print_properties(cf):
+	properties = cf.GetProperties()
+
+	for p in properties:
+		if len(properties[p].__str__()) > 0:
+			print("%s call forwarding rule is: %s" % (p, properties[p]))
+		else:
+			print("%s call forwarding rule disabled" % (p))
+
+if __name__ == "__main__":	
+
+	if len(sys.argv) < 2:
+		print("Usage: %s <number to forward>" % (sys.argv[0]))
+		sys.exit(1)
+
+	fw_num = sys.argv[1]
+	
+	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+	bus = dbus.SystemBus()
+
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+							'org.ofono.Manager')
+
+	modems = manager.GetModems()
+
+	cf = dbus.Interface(bus.get_object('org.ofono', modems[0][0]),
+				'org.ofono.CallForwarding')
+
+	cf.connect_to_signal("PropertyChanged", property_changed)
+
+	print_properties(cf)
+
+	try:
+		cf.SetProperty("FoobarNoReplyTimeout", dbus.UInt16(19))
+	except dbus.DBusException as e:
+		print("Unable to set FoobarNoReplyTimeout - Good")
+
+	try:
+		cf.SetProperty("VoiceNotReachableTimeout", dbus.UInt16(19))
+	except dbus.DBusException as e:
+		print("Unable to set VoiceNotReachableTimeout - Good")
+
+	try:
+		cf.SetProperty("VoiceNoReplyTimeout", dbus.UInt16(19))
+	except dbus.DBusException as e:
+		print("Unable to set VoiceNoReplyTimeout - Good")
+
+	try:
+		cf.SetProperty("DataNoReplyTimeout", dbus.UInt16(19))
+	except dbus.DBusException as e:
+		print("Unable to set DataNoReplyTimeout - Good")
+
+	try:
+		cf.SetProperty("FaxNoReplyTimeout", dbus.UInt16(19))
+	except dbus.DBusException as e:
+		print("Unable to set FaxNoReplyTimeout - Good")
+
+	try:
+		cf.SetProperty("SmsNoReplyTimeout", dbus.UInt16(19))
+	except dbus.DBusException as e:
+		print("Unable to set SmsNoReplyTimeout - Good")
+
+#================================= VoiceNoReply ====================================================================	
+	try:
+		cf.SetProperty("VoiceNoReply", "")
+	except dbus.DBusException as e:
+		print("Unable to erase voice no reply rule - Bad")
+
+	try:
+		cf.SetProperty("VoiceNoReply", fw_num)
+	except dbus.DBusException as e:
+		print("Unable to register voice no reply rule - Bad")
+
+	try:
+		cf.SetProperty("VoiceNoReplyTimeout", dbus.UInt16(30))
+	except dbus.DBusException as e:
+		print("Unable to set voice no reply timeout - Bad")
+
+	properties = cf.GetProperties()
+
+	print(properties["VoiceNoReply"])
+	print(properties["VoiceNoReplyTimeout"])
+
+
+#================================= VoiceBusy ====================================================================	
+
+	try:
+		cf.SetProperty("VoiceBusy", "")
+	except dbus.DBusException as e:
+		print("Unable to erase VoiceBusy rule - Bad")
+
+	try:
+		cf.SetProperty("VoiceBusy", fw_num)
+	except dbus.DBusException as e:
+		print("Unable to register VoiceBusy rule - Bad")
+
+
+	properties = cf.GetProperties()
+
+	print(properties["VoiceBusy"])
+	
+#================================= VoiceNotReachable ====================================================================	
+	
+	try:
+		cf.SetProperty("VoiceNotReachable", "")
+	except dbus.DBusException as e:
+		print("Unable to erase voice no reply rule - Bad")
+
+	try:
+		cf.SetProperty("VoiceNotReachable", fw_num)
+	except dbus.DBusException as e:
+		print("Unable to register VoiceNotReachable rule - Bad")
+
+	properties = cf.GetProperties()
+
+	print(properties["VoiceNoReply"])
+	
+#================================= VoiceNoReply ====================================================================	
+
+	try:
+		cf.SetProperty("VoiceNoReply", "")
+	except dbus.DBusException as e:
+		print("Unable to erase voice no reply rule - Bad")
+
+	try:
+		cf.SetProperty("VoiceNoReply", fw_num)
+	except dbus.DBusException as e:
+		print("Unable to register voice no reply rule - Bad")
+
+	try:
+		cf.SetProperty("VoiceNoReplyTimeout", dbus.UInt16(30))
+	except dbus.DBusException as e:
+		print("Unable to set voice no reply timeout - Bad")
+
+	properties = cf.GetProperties()
+
+	print(properties["VoiceNoReply"])
+	print(properties["VoiceNoReplyTimeout"])
+	
+	
+#================================= UNCONDITIONAL ====================================================================	
+
+	try:
+		cf.SetProperty("VoiceUnconditional", fw_num)
+	except dbus.DBusException as e:
+		print("Unable to set Voice Unconditional - Bad")
+
+	properties = cf.GetProperties()
+
+	print(properties["VoiceUnconditional"])
+
+	try:
+		cf.DisableAll("foobar")
+	except dbus.DBusException as e:
+		print("Unable to delete invalids - Good")
+
+	try:
+		cf.DisableAll("conditional")
+	except dbus.DBusException as e:
+		print("Unable to delete all conditional - Bad")
+
+	properties = cf.GetProperties()
+
+	print(properties["VoiceNoReply"])
+	print(properties["VoiceNoReplyTimeout"])
+
+	try:
+		cf.DisableAll("all")
+	except dbus.DBusException as e:
+		print("Unable to delete all - Bad")
+
+	print(properties["VoiceUnconditional"])
+
+	mainloop = GLib.MainLoop()
+	mainloop.run()

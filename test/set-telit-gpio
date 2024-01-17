@@ -1,0 +1,36 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+
+bus = dbus.SystemBus()
+
+if (len(sys.argv) == 5):
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+	pin = sys.argv[1]
+	mode = sys.argv[2]
+	dir = sys.argv[3]
+	save = sys.argv[4]
+elif (len(sys.argv) == 6):
+	path = sys.argv[1]
+	pin = sys.argv[2]
+	mode = sys.argv[3]
+	dir = sys.argv[4]
+	save = sys.argv[5]
+else:
+	print("Usage: %s [modem] <pin> <mode> <dir> <save>" % (sys.argv[0]))
+	print("ex. %s 1 2 3 4" % (sys.argv[0]))
+	sys.exit(1)
+
+telit = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.TelitHWManagement')
+
+try:
+	print("Set GPIO %s..." % path)
+	telit.SetGPIO(dbus.String(pin), dbus.String(mode), dbus.String(dir), dbus.String(save))
+except dbus.DBusException as e:
+	print("Error trace %s: %s" % (path, str(e)))
+	exit(2)

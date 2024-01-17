@@ -1,0 +1,50 @@
+#!/usr/bin/python3
+
+import sys
+import dbus
+
+if len(sys.argv) < 2:
+	print("Usage: " + sys.argv[0] + " <N context>")
+	sys.exit(1)
+bus = dbus.SystemBus()
+
+manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+
+modems = manager.GetModems()
+
+for path, properties in modems:
+	if "org.ofono.ConnectionManager" not in properties["Interfaces"]:
+		continue
+
+	connman = dbus.Interface(bus.get_object('org.ofono', path),
+					'org.ofono.ConnectionManager')
+
+	contexts = connman.GetContexts()
+
+
+	if (len(contexts) == 0):
+		print("No context available")
+		sys.exit(1)
+
+	context_id = int(sys.argv[1])
+
+	if (len(contexts) < (context_id+1) ):
+		print("Context %i is not available" % context_id)
+		val = "Are defined contexts [ "
+		for i in range(len(contexts)):
+			val += str(i) + " "
+		val += "]"
+		print ("%s" % val)
+		sys.exit(1)
+
+
+	path = contexts[context_id][0]
+	context = dbus.Interface(bus.get_object('org.ofono', path),
+					'org.ofono.ConnectionContext')
+	try:
+		connman.RemoveContext(path)
+		print("Removed: [ %s ]" % (path))
+	except dbus.DBusException as e:
+		print("Error removing context %s" % sys.argv[1])
+		exit(2)

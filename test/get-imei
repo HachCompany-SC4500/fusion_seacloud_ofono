@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+
+import dbus, sys
+
+bus = dbus.SystemBus()
+
+if len(sys.argv) == 2:
+        path = sys.argv[1]
+else:
+        manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+                                                'org.ofono.Manager')
+        modems = manager.GetModems()
+        path = modems[0][0]
+
+modem = dbus.Interface(bus.get_object('org.ofono', modems[0][0]),
+                                                'org.ofono.Modem')
+
+properties = modem.GetProperties()
+
+print("IMEI: %s" % (properties['Serial']))
+

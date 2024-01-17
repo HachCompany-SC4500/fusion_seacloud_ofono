@@ -1,0 +1,66 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+
+bus = dbus.SystemBus()
+
+if (len(sys.argv) == 2):
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+	mode = sys.argv[1]
+elif (len(sys.argv) == 3):
+	path = sys.argv[1]
+	mode = sys.argv[2]
+else:
+	print("Usage: %s [modem] <mode (0,1)>" % (sys.argv[0]))
+	sys.exit(1)
+
+telit = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.TelitURC')
+
+if (int(mode) > 1):
+	print("[WARNING] mode value is changed in 1")
+
+try:
+	print("Set NetworkType %s..." % path)
+	telit.SetProperty("NetworkType", dbus.Boolean(int(mode)))
+except dbus.DBusException as e:
+	print("Error trace %s: %s" % (path, str(e)))
+#	exit(2)
+
+try:
+	print("Set GPRSEvents %s..." % path)
+	telit.SetProperty("GPRSEvents", dbus.Boolean(int(mode)))
+except dbus.DBusException as e:
+	print("Error trace %s: %s" % (path, str(e)))
+
+try:
+	print("Set SIMStatus %s..." % path)
+	telit.SetProperty("SIMStatus", dbus.Boolean(int(mode)))
+except dbus.DBusException as e:
+	print("Error trace %s: %s" % (path, str(e)))
+
+try:
+	print("Set GPRSStatus %s..." % path)
+	telit.SetProperty("GPRSStatus", dbus.Boolean(int(mode)))
+except dbus.DBusException as e:
+	print("Error trace %s: %s" % (path, str(e)))
+
+
+
+try:
+	print("Set RSSIControl %s..." % path)
+	telit.SetProperty("RSSIControl", dbus.Boolean(int(mode)))
+except dbus.DBusException as e:
+	print("Error trace %s: %s" % (path, str(e)))
+
+
+
+try:
+	print("Set NetworkStatus %s..." % path)
+	telit.SetProperty("NetworkStatus", dbus.Boolean(int(mode)))
+except dbus.DBusException as e:
+	print("Error trace %s: %s" % (path, str(e)))

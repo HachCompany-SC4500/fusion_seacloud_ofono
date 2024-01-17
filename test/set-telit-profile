@@ -1,0 +1,34 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+
+bus = dbus.SystemBus()
+
+if (len(sys.argv) == 4):
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+	cid = sys.argv[1]
+	pdp_type = sys.argv[2]
+	apn = sys.argv[3]
+elif (len(sys.argv) == 5):
+	path = sys.argv[1]
+	cid = sys.argv[2]
+	pdp_type = sys.argv[3]
+	apn = sys.argv[4]
+else:
+	print("Usage: %s [modem] <profile number> <PDP type> <APN>" % (sys.argv[0]))
+	print("ex. %s 1 IP ibox.tim.it" % (sys.argv[0]))
+	sys.exit(1)
+
+telit = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.TelitDataNetwork')
+
+try:
+	print("Set profile %s..." % path)
+	telit.SetProfile(dbus.String(cid), dbus.String(pdp_type), dbus.String(apn))
+except dbus.DBusException as e:
+	print("Error trace %s: %s" % (path, str(e)))
+	exit(2)

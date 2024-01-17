@@ -1,0 +1,72 @@
+#!/usr/bin/python3
+
+from gi.repository import GLib
+
+import dbus
+import dbus.mainloop.glib
+
+def property_changed(name, value):
+	print("[Changed] %s: %s" % (name, value))
+
+def Context_Added(path, properties):
+	print("Added context: %s" % (path))
+	for key in properties.keys():
+		if key in ["Settings"] or key in ["IPv6.Settings"]:
+			val = "{"
+			for i in properties[key].keys():
+				val += " " + i + "="
+				if i in ["DomainNameServers"]:
+					for n in properties[key][i]:
+						val += n + ","
+				elif i in ["PrefixLength"]:
+					p = int(properties[key][i])
+					val += str(p)
+				else:
+					val += properties[key][i]
+			val += " }"
+		else:
+			val = str(properties[key])
+		print("        %s = %s" % (key, val))
+
+def Context_Removed(path):
+	print("Removed context: %s" % (path))
+
+if __name__ == "__main__":
+	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+	bus = dbus.SystemBus()
+
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+							'org.ofono.Manager')
+
+	modems = manager.GetModems()
+
+
+	conn_manager = dbus.Interface(bus.get_object('org.ofono', modems[0][0]),
+							'org.ofono.ConnectionManager')
+
+	conn_manager.connect_to_signal("PropertyChanged", property_changed)
+
+	propertiesConnMan = conn_manager.GetProperties()
+
+	conn_manager.connect_to_signal("ContextAdded", Context_Added)
+	conn_manager.connect_to_signal("ContextRemoved", Context_Removed)
+
+
+	if 'Bearer' in propertiesConnMan:
+		print("Bearer: %s" % (propertiesConnMan['Bearer']))
+
+	if 'Suspended' in propertiesConnMan:
+		print("Suspended: %s" % (propertiesConnMan['Suspended']))
+
+	if 'Attached' in propertiesConnMan:
+		print("Attached: %s" % (propertiesConnMan['Attached']))
+
+	if 'RoamingAllowed' in propertiesConnMan:
+		print("RoamingAllowed: %s" % (propertiesConnMan['RoamingAllowed']))
+
+	if 'Powered' in propertiesConnMan:
+		print("Powered: %s" % (propertiesConnMan['Powered']))
+
+	mainloop = GLib.MainLoop()
+	mainloop.run()

@@ -1,0 +1,31 @@
+#!/usr/bin/python3
+
+import dbus, sys
+
+bus = dbus.SystemBus()
+
+manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+                                                'org.ofono.Manager')
+modems = manager.GetModems()
+path = modems[0][0]
+
+netreg = dbus.Interface(bus.get_object('org.ofono', modems[0][0]),
+                                                'org.ofono.NetworkRegistration')
+
+props = netreg.GetProperties()
+
+#print("Status: %s" % (str(props['Status'])))
+
+
+print('')
+for key in props.keys():
+	if key in ["LocationAreaCode",
+				"CellId"]:
+		val = hex(props[key])
+	elif key in ["Strength"]:
+		val = int(props[key])
+	else:
+		val = props[key]
+	print("        %s = %s" % (key, val))
+
+print('')

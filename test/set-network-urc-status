@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+
+bus = dbus.SystemBus()
+
+if (len(sys.argv) == 2):
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+	mode = sys.argv[1]
+elif (len(sys.argv) == 3):
+	path = sys.argv[1]
+	mode = sys.argv[2]
+else:
+	print("Usage: %s [modem] [mode]" % (sys.argv[0]))
+	sys.exit(1)
+
+telit = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.TelitURC')
+
+try:
+	print("Set mode %s..." % path)
+	telit.SetProperty("NetworkStatus", dbus.Boolean(int(mode)))
+except dbus.DBusException as e:
+	print("Error trace %s: %s" % (path, str(e)))
+	exit(2)

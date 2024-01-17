@@ -1,0 +1,40 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+
+bus = dbus.SystemBus()
+
+if (len(sys.argv) == 4):
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+	sessionid = sys.argv[1]
+	length = sys.argv[2]
+	command = sys.argv[3]
+elif (len(sys.argv) == 5):
+	path = sys.argv[1]
+	sessionid = sys.argv[2]
+	length = sys.argv[3]
+	command = sys.argv[4]
+else:
+	print("Usage: %s [modem] <session ID> <length> <command>" % (sys.argv[0]))
+	print("ex. %s 1 10 FFFFFFFFFF" % (sys.argv[0]))
+	sys.exit(1)
+
+telit = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.TelitMEControl')
+
+try:
+	print("Logical Channel Access %s..." % path)
+	response = telit.LogicalChannelAccess(dbus.Int32(sessionid),dbus.Int32(length),dbus.String(command))
+except dbus.DBusException as e:
+	print("Error Logical Channel Access %s: %s" % (path, str(e)))
+	exit(2)
+
+for key in response.keys():
+	val = str(response[key])
+	print("%s, %s" % (key, val))
+
+print('')

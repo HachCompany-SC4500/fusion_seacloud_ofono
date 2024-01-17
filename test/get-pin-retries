@@ -1,0 +1,33 @@
+#!/usr/bin/python3
+
+import dbus
+import sys
+import time
+
+bus = dbus.SystemBus()
+
+if len(sys.argv) == 2:
+	path = sys.argv[1]
+else:
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+					'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+
+simmanager = dbus.Interface(bus.get_object('org.ofono', path),
+				'org.ofono.SimManager')
+
+properties=simmanager.GetProperties()
+
+#  remaining entries: dbus.Dictionary({dbus.String('pin'): dbus.Byte(3)}, signature=dbus.Signature('sy'), variant_level=1)
+for key in properties.keys():
+	if key in ["Retries"]:
+		val = ""
+		for i in properties[key]:
+			val +=  "[" + i + " = "
+			val += str(int(properties[key][i])) + "] "
+		print("%s: %s" % (key, val))
+
+#val = "[pin = " + str(int(properties["Retries"]["pin"])) + "] "
+#print("Retries: %s" % val)
+# crim

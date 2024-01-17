@@ -1,0 +1,30 @@
+#!/usr/bin/python3
+
+import dbus, sys
+
+bus = dbus.SystemBus()
+
+if len(sys.argv) == 2:
+	path = sys.argv[1]
+else:
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+						'org.ofono.Manager')
+	modems = manager.GetModems()
+	path = modems[0][0]
+
+radiosettings = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.RadioSettings')
+
+
+networkreg = dbus.Interface(bus.get_object('org.ofono', path),
+						'org.ofono.NetworkRegistration')
+
+properties = radiosettings.GetProperties()
+net_properties = networkreg.GetProperties()
+
+if "gsm" in net_properties["Technology"]:
+	print("Gsm band: %s" % (properties["GsmBand"]))
+elif "umts" in net_properties["Technology"]:
+	print("Umts band: %s" % (properties["UmtsBand"]))
+else:
+	print("Unknown technology")

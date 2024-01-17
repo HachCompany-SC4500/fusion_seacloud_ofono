@@ -1,0 +1,31 @@
+#!/usr/bin/python3
+
+import sys
+import dbus
+
+if __name__ == '__main__':
+	if len(sys.argv) < 2:
+		print("Usage: %s [modem] <string-tones>" %\
+				(sys.argv[0]))
+		sys.exit(1)
+
+	bus = dbus.SystemBus()
+
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
+			'org.ofono.Manager')
+
+	# Default modem
+	modems = manager.GetModems()
+	modem = modems[0][0]
+
+	if len(sys.argv) == 3:
+		modem = sys.argv[1]
+		tones = sys.argv[2]
+
+	if len(sys.argv) == 2:
+		tones = sys.argv[1]
+
+	vcm = dbus.Interface(bus.get_object('org.ofono', modem),
+			'org.ofono.VoiceCallManager')
+
+	vcm.SendTones(tones)
